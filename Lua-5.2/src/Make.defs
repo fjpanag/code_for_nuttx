@@ -1,0 +1,71 @@
+#
+# Lua Library
+#
+
+CSRCS_PREFIX = $(LUA_LIB_PATH)
+
+L_CORE += $(CSRCS_PREFIX)/lapi.c
+L_CORE += $(CSRCS_PREFIX)/lcode.c
+L_CORE += $(CSRCS_PREFIX)/lctype.c
+L_CORE += $(CSRCS_PREFIX)/ldebug.c
+L_CORE += $(CSRCS_PREFIX)/ldo.c
+L_CORE += $(CSRCS_PREFIX)/ldump.c
+L_CORE += $(CSRCS_PREFIX)/lfunc.c
+L_CORE += $(CSRCS_PREFIX)/lgc.c
+L_CORE += $(CSRCS_PREFIX)/llex.c
+L_CORE += $(CSRCS_PREFIX)/lmem.c
+L_CORE += $(CSRCS_PREFIX)/lobject.c
+L_CORE += $(CSRCS_PREFIX)/lopcodes.c
+L_CORE += $(CSRCS_PREFIX)/lparser.c
+L_CORE += $(CSRCS_PREFIX)/lstate.c
+L_CORE += $(CSRCS_PREFIX)/lstring.c
+L_CORE += $(CSRCS_PREFIX)/ltable.c
+L_CORE += $(CSRCS_PREFIX)/ltm.c
+L_CORE += $(CSRCS_PREFIX)/lundump.c
+L_CORE += $(CSRCS_PREFIX)/lvm.c
+L_CORE += $(CSRCS_PREFIX)/lzio.c
+ifeq ($(CONFIG_LUA_LTR),y)
+L_CORE += $(CSRCS_PREFIX)/lrotable.c
+endif
+
+L_LIB += $(CSRCS_PREFIX)/lauxlib.c
+L_LIB += $(CSRCS_PREFIX)/lbaselib.c
+L_LIB += $(CSRCS_PREFIX)/lbitlib.c
+L_LIB += $(CSRCS_PREFIX)/lcorolib.c
+L_LIB += $(CSRCS_PREFIX)/ldblib.c
+L_LIB += $(CSRCS_PREFIX)/liolib.c
+L_LIB += $(CSRCS_PREFIX)/lmathlib.c
+L_LIB += $(CSRCS_PREFIX)/loslib.c
+L_LIB += $(CSRCS_PREFIX)/lstrlib.c
+L_LIB += $(CSRCS_PREFIX)/ltablib.c
+L_LIB += $(CSRCS_PREFIX)/loadlib.c
+L_LIB += $(CSRCS_PREFIX)/linit.c
+
+L_BASE += $(L_CORE) $(L_LIB)
+
+L_LUA = $(CSRCS_PREFIX)/lua.c
+L_LUAC = $(CSRCS_PREFIX)/luac.c
+
+CSRCS += $(L_BASE) $(L_LUA) $(L_LUAC)
+
+
+# Disable compiler warnings.
+$(BUILD_DIR)/$(CSRCS_PREFIX)/ltable.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/ltable.o: CFLAGS :=$(filter-out "-fsanitize=undefined", $(CFLAGS))
+$(BUILD_DIR)/$(CSRCS_PREFIX)/llex.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lstrlib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lgc.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lgc.o: CFLAGS :=$(filter-out "-fsanitize=undefined", $(CFLAGS))
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lua.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lcode.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lauxlib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lbaselib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/ldblib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/liolib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/loslib.o: CFLAGS += -w
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lbitlib.o: CFLAGS :=$(filter-out "-fsanitize=undefined", $(CFLAGS))
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lstring.o: CFLAGS :=$(filter-out "-fsanitize=undefined", $(CFLAGS))
+ifeq ($(CONFIG_LUA_LTR),y)
+$(BUILD_DIR)/$(CSRCS_PREFIX)/lrotable.o: CFLAGS += -w
+endif
+

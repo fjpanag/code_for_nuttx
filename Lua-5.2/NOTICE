@@ -1,0 +1,11 @@
+Lua 5.2
+
+This is the official Lua 5.2.4 code, with some modifications by me for use in embedded systems.
+
+The eLua LTR patch (https://eluaproject.net/doc/master/en_arch_ltr.html) has been ported to Lua 5.2.
+This patch is **crucial** for using Lua on embedded applications.
+
+A Kconfig file is also provided that can help with NuttX integration.
+
+Other minor modifications have been done, for example there is some sandboxing options provided.
+

@@ -1,0 +1,127 @@
+#
+# Lua Configuration
+#
+
+comment "Lua-5.2.4"
+
+config LUA
+	bool
+	default y
+	select LIBC_LOCALE
+
+config LUA_COMPAT_ALL
+	bool "Lua compatibility"
+	default y
+	---help---
+		Enables compatibility with previous Lua versions.
+
+config LUA_USE_POSIX
+	bool "Posix compatibility"
+	default y
+	---help---
+		Enables usage of Posix API by Lua.
+		
+		Note that only features that are supported by
+		NuttX will be enabled.
+
+config LUA_STDIO
+	bool "Standard I/O"
+	default y
+	depends on LUA_IO_LIB
+	---help---
+		Enables access to stdio (stdin, stdout, stderr), by Lua.
+
+config LUAI_MAXSTACK
+	int "Lua stack size"
+	default 5000
+	---help---
+		Limits the size of the Lua stack.
+		Change it if you need a different limit. This limit is arbitrary;
+		its only purpose is to stop Lua from consuming unlimited stack
+		space (and to reserve some numbers for pseudo-indices).
+
+config LUA_NUMBER_FMT
+	string "Lua number format"
+	default "%.14g"
+	---help---
+		Specifies the format for writing numbers.
+
+menu "Libraries"
+
+config LUA_BASE_LIB
+	bool "Base lib"
+	default y
+
+config LUA_PACKAGE_LIB
+	bool "Package lib"
+	default y
+
+config LUA_COROUTINE_LIB
+	bool "Coroutine lib"
+	default y
+
+config LUA_TABLE_LIB
+	bool "Table lib"
+	default y
+
+config LUA_IO_LIB
+	bool "IO lib"
+	default y
+
+config LUA_SYSTEM_LIB
+	bool "System lib"
+	default y
+
+config LUA_STRING_LIB
+	bool "String lib"
+	default y
+
+config LUA_BIT_LIB
+	bool "Bit lib"
+	default y
+
+config LUA_MATH_LIB
+	bool "Math lib"
+	default y
+
+config LUA_DEBUG_LIB
+	bool "Debug lib"
+	default y
+
+endmenu
+
+config LUA_SANDBOX
+	bool "Sandbox Lua"
+	default n
+	---help---
+		If enabled, Lua is "sandboxed" by disabling various library
+		calls that have system side-effects.
+		
+		Most notably, sandbox disables calls towards the OS, file
+		system I/O, standard I/O (console), debug features and more.
+		
+		This is not a complete sandbox, the application must make
+		sure that all Lua calls are protected, and of course that
+		no external libraries allow access to the OS, bypassing
+		the limitations imposed on the standard library.
+
+config LUA_LTR
+	bool "Lua Tiny RAM patch"
+	default y
+	---help---
+		Enables the Lua Tiny RAM (LTR) patch.
+
+config EXTERN_ROTABLE
+	bool "External rotable for LTR"
+	default n
+	depends on LUA_LTR
+	---help---
+		If enabled, an external rotable will be used, instead of
+		the default provided here.
+		
+		This is useful to allow extending the standard libraries,
+		with other user-defined lirbaries.
+		
+		The rotable needs to be named `extern_rotable` and it must
+		adhere to the specific structure that is seen in linit.c
+		for the default table.
