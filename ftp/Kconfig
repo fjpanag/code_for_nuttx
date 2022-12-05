@@ -1,0 +1,34 @@
+#
+# FTP Client Configuration
+#
+
+config FTPC_CONTROL_TIMEOUT
+	int "Control socket timeout"
+	default 10
+	---help---
+		The control socket timeout, in seconds.
+
+config FTPC_DATA_TIMEOUT
+	int "Data socket timeout"
+	default 10
+	---help---
+		The data socket timeout, in seconds.
+
+config FTPC_BUFFER_SIZE
+	int "Buffer size"
+	default 256
+	---help---
+		Internal buffer size.
+
+config FTPC_SENDFILE
+	bool "Use sendfile"
+	default y
+	depends on NET_SENDFILE
+	---help---
+		If enabled, sendfile() will be used for uploading files
+		to the server.
+		
+		Sendfile is more optimized for the task and better performance
+		is expected to be achieved.
+		
+		Note however that this may not be portable to other OS'es.
