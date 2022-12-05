@@ -1,0 +1,141 @@
+#
+# MQTT Broker Configuration
+#
+
+menuconfig MQTT_BROKER
+	bool "MQTT Broker"
+	default y
+	select NET_TCP_KEEPALIVE
+	select NET_TCPBACKLOG
+	select NET_LOOPBACK
+	---help---
+		If enabled, a simple and lightweight MQTT
+		broker will be included in the build.
+
+if MQTT_BROKER
+
+comment "Broker configuration"
+
+config MQTT_BROKER_PRIORITY
+	int "MQTT broker priority"
+	default 100
+	---help---
+		Priority of the broker task.
+
+config MQTT_BROKER_STACKSIZE
+	int "MQTT broker stack size"
+	default 3072
+	---help---
+		Broker task stack size.
+
+comment "Server configuration"
+
+config MQTT_BROKER_PORT
+	int "MQTT server port"
+	default 1883
+	---help---
+		The port that the broker listens to.
+
+config MQTT_BROKER_INACTIVE_TIMEOUT
+	int "Inactivity timeout"
+	default 5
+	---help---
+		Connection inactivity timeout.
+		If a new connection is established but the
+		client does not send a valid CONNECT message
+		within this period, the connection will be dropped.
+		
+		In seconds.
+
+comment "Sessions configuration"
+
+config MQTT_BROKER_MAX_SESSIONS
+	int "Maximum sessions"
+	default 8
+	---help---
+		Maximum allowed active sessions.
+
+config MQTT_BROKER_MAX_INFLIGHT
+	int "Maximum in-flight messages"
+	default 2
+	---help---
+		Maximum number of messages that can be
+		in-flight for every session.
+
+config MQTT_BROKER_MAX_SUBSCRIPTIONS
+	int "Maximum subscriptions"
+	default 8
+	---help---
+		Maximum allowed subscriptions per session.
+
+config MQTT_BROKER_STORE_SESSIONS
+	bool "Store closed sessions"
+	default y
+	---help---
+		If enabled, any closed session will be stored.
+		If the same client tries to connect at a later
+		time, the session will be restored.
+
+config MQTT_BROKER_MAX_STORED_SESSIONS
+	int "Maximum stored sessions"
+	default 4
+	depends on MQTT_BROKER_STORE_SESSIONS
+	---help---
+		Maximum number of sessions that will be stored.
+
+comment "Queues configuration"
+
+config MQTT_BROKER_QUEUE_SIZE
+	int "Queue size"
+	default MQTT_BROKER_MAX_SESSIONS
+	---help---
+		Maximum number of messages in the publish queue.
+
+config MQTT_BROKER_MAX_RETAINED
+	int "Maximum retained messages"
+	default MQTT_BROKER_MAX_SESSIONS
+	---help---
+		Maximum number of retained messages.
+
+comment "Logger configuration"
+
+choice
+	prompt "Logger"
+	default MQTT_BROKER_LOG_NONE
+
+config MQTT_BROKER_LOG_SYSLOG
+	bool "Syslog"
+	---help---
+		Broker log messages will be printed to
+		syslog.
+
+config MQTT_BROKER_LOG_FILE
+	bool "File"
+	---help---
+		Broker log messages will be printed to
+		a dedicated file.
+
+config MQTT_BROKER_LOG_NONE
+	bool "None"
+	---help---
+		Broker logging is disabled.
+		All log messages will be discarded.
+
+endchoice
+
+config MQTT_BROKER_LOG_DEBUG
+	bool "Log DEBUG level"
+	default n
+	depends on !MQTT_BROKER_LOG_NONE
+	---help---
+		Enables logging of DEBUG level messages.
+
+config MQTT_BROKER_LOG_FILENAME
+	string "Log filename"
+	default "/mnt/sdcard0/mqtt_broker.log"
+	depends on MQTT_BROKER_LOG_FILE
+	---help---
+		Filename and path of the broker's
+		log file.
+
+endif

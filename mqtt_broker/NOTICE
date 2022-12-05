@@ -1,0 +1,21 @@
+MQTT Broker
+
+This is 100% original work, developed by me only.
+The only exception is the function isTopicMatched() which originates from Eclipse Paho.
+
+There is a performance issue with this broker.
+If it has to close a TCP connection (e.g. dropping a session), the connection will end up in the TCP_WAIT state.
+This may eventually exhaust the server's resources, and normally is handled with using SO_LINGER with 0 timeout.
+However there is this bug in NuttX: https://github.com/apache/nuttx/issues/7522.
+
+If this issue if fixed, I will be happy to update the server to use this option, and test it.
+I would highly prefer to do so before porting to NuttX (as I have the test environment ready for this).
+
+Client authentication is not implemented, there is only a place-holder there.
+Feel free to propose an implementation.
+
+Another issue may be the logging of the server, which is not optimal, but it is also not affecting its actual operation.
+
+To create an actual application that runs this server, the function MQTT_Broker_start() in the file mqtt_broker.c should be modified.
+I don't expect any modifications in any other file.
+
