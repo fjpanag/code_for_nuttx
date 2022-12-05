@@ -1,0 +1,41 @@
+#
+# MQTT Configuration
+#
+
+menu "MQTT"
+
+comment "MQTT Client"
+
+choice
+	prompt "MQTT Version"
+	default MQTT_VER_3_1_1
+
+config MQTT_VER_3_1
+	bool "v3.1.0"
+	
+config MQTT_VER_3_1_1
+	bool "v3.1.1"
+
+endchoice
+
+config MQTT_KEEPALIVE_INTERVAL
+	int "Keep-alive interval"
+	default	10
+	---help---
+		The keep-alive interval of the connection.
+		In seconds. 
+
+config MQTT_TIMEOUT
+	int "Sockets timeout"
+	default 5
+	---help---
+		Sockets timeout, in seconds.
+
+config MQTT_RECONNECT_INTERVAL
+	int "Re-connection interval"
+	default 5
+	---help---
+		The time interval that a re-connection will
+		be attempted. In seconds.
+
+endmenu
