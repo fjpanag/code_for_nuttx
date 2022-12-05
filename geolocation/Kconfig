@@ -1,0 +1,42 @@
+#
+# Geolocation Service Configuration
+#
+
+comment "Geolocation configuration"
+
+config GEOLOCATION
+	bool "Geolocation"
+	default y
+	---help---
+		Enables the Geolocation service.
+
+if GEOLOCATION
+
+config GEOLOCATION_API_KEY
+	string "API Key"
+	default ""
+	---help---
+		Geolocaiton provider API key.
+
+config GEOLOCATION_BUFFER_SIZE
+	int "Buffer size"
+	default 512
+	---help---
+		The size of the internal buffer.
+
+config GEOLOCATION_START_DELAY
+	int "Start delay"
+	default 10
+	---help---
+		Geolocation initial request delay.
+		In seconds.
+
+config GEOLOCATION_RETRY_INTERVAL
+	int "Retry interval"
+	default 10
+	---help---
+		In case of any error, the service will
+		try to perform a new request after this
+		time period. In seconds.
+
+endif

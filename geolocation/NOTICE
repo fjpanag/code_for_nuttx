@@ -1,0 +1,8 @@
+Geolocation service
+
+This software uses the ipgeolocation.io API to get the approximate current location of a device.
+
+Although it is of minimal "coding" importance, I hope it is a useful example of the API and that it may act as an inspiration to someone in need of device geolocation.
+
+It also includes a working example of the JSON lirbary.
+
