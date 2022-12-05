@@ -1,0 +1,12 @@
+Settings Storage
+
+Key-value settings storage.
+
+This is 100% original work, developed by me only.
+
+It supports various data types (integers, floats, booleans, strings, IP addresses), and can automatically convert the settings between the various types.
+
+Multiple storages are supported. For the moment only two types are provided: text and binary. Contact me if you need any other data storage developed.
+
+Cached writes and change notifications are supported.
+
