@@ -202,9 +202,9 @@ void save_text(char * file)
 
 			case SETTING_IP_ADDR:
 			{
-				char buffer[20];
-				inet_ntop(AF_INET, &map[i].ip, buffer, 20);
-				fprintf(f, "%s=%s\n", map[i].key, buffer);
+				char ip_str[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, &map[i].ip, ip_str, sizeof(ip_str));
+				fprintf(f, "%s=%s\n", map[i].key, ip_str);
 				break;
 			}
 		}

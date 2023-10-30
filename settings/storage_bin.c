@@ -91,7 +91,7 @@ void save_bin(char * file)
 		count++;
 	}
 
-	int fd = open(file, (O_RDWR | O_TRUNC), 0666);
+	int fd = open(file, (O_CREAT | O_RDWR | O_TRUNC), 0666);
 	if (fd < 0)
 		goto abort;
 

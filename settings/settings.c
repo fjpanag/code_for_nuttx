@@ -104,11 +104,11 @@ void Settings_setStorage(char * file, int type)
 	int idx = 0;
 	while ((idx < CONFIG_SETTINGS_MAX_STORAGES) && (store[idx].file[0] != '\0')) idx++;
 
-	DEBUGASSERT(idx < CONFIG_SETTINGS_MAX_STORAGES);
+	assert(idx < CONFIG_SETTINGS_MAX_STORAGES);
 	if (idx >= CONFIG_SETTINGS_MAX_STORAGES)
 		goto end;
 
-	DEBUGASSERT(strlen(file) < CONFIG_SETTINGS_MAX_FILENAME);
+	assert(strlen(file) < CONFIG_SETTINGS_MAX_FILENAME);
 	if (strlen(file) >= CONFIG_SETTINGS_MAX_FILENAME)
 		goto end;
 
@@ -129,7 +129,7 @@ void Settings_setStorage(char * file, int type)
 			break;
 
 		default:
-			DEBUGASSERT(0);
+			assert(0);
 			break;
 	}
 
@@ -177,7 +177,7 @@ void Settings_notify(uint8_t signo)
 	while ((idx < CONFIG_SETTINGS_MAX_SIGNALS) && notify[idx].pid)
 		idx++;
 
-	DEBUGASSERT(idx < CONFIG_SETTINGS_MAX_SIGNALS);
+	assert(idx < CONFIG_SETTINGS_MAX_SIGNALS);
 	if (idx >= CONFIG_SETTINGS_MAX_SIGNALS)
 		return;
 
@@ -212,16 +212,20 @@ int Settings_create(char * key, int type, ...)
 {
 	Setting_t * setting = NULL;
 
-	DEBUGASSERT(strlen(key));
+	assert(strlen(key));
 	if (strlen(key) == 0)
 		return 0;
 
-	DEBUGASSERT(strlen(key) < CONFIG_SETTINGS_KEY_SIZE);
+	assert(strlen(key) < CONFIG_SETTINGS_KEY_SIZE);
 	if (strlen(key) >= CONFIG_SETTINGS_KEY_SIZE)
 		return 0;
 
-	DEBUGASSERT(isalpha(key[0]) && sanityCheck(key));
+	assert(isalpha(key[0]) && sanityCheck(key));
 	if (!isalpha(key[0]) || !sanityCheck(key))
+		return 0;
+
+	assert(type != SETTING_EMPTY);
+	if (type == SETTING_EMPTY)
 		return 0;
 
 	pthread_mutex_lock(&mtx);
@@ -237,19 +241,20 @@ int Settings_create(char * key, int type, ...)
 		if (map[i].type == SETTING_EMPTY)
 		{
 			setting = &map[i];
+			strncpy(setting->key, key, CONFIG_SETTINGS_KEY_SIZE);
+			setting->key[CONFIG_SETTINGS_KEY_SIZE - 1] = '\0';
 			break;
 		}
 	}
 
-	DEBUGASSERT(setting);
+	assert(setting);
+	if (setting == NULL)
+		goto end;
 
-	if (setting && (setting->type != type))
+	if ((setting->type == SETTING_EMPTY) || (setting->type != type))
 	{
-		int ok = 0;
-
-		strncpy(setting->key, key, CONFIG_SETTINGS_KEY_SIZE);
-		setting->key[CONFIG_SETTINGS_KEY_SIZE - 1] = '\0';
-		setting->type = type;
+		int set_val = 0;
+		int set_ok = 0;
 
 		va_list ap;
 		va_start(ap, type);
@@ -258,61 +263,97 @@ int Settings_create(char * key, int type, ...)
 		{
 			case SETTING_STRING:
 			{
+				if ((setting->type == SETTING_STRING) || (setting->type == SETTING_IP_ADDR))
+					break;
+
+				set_val = 1;
+
 				char * str = va_arg(ap, char*);
-				ok = setString(setting, str);
+				setting->type = SETTING_STRING;
+				set_ok = setString(setting, str);
 				break;
 			}
 
 			case SETTING_INT:
 			{
+				if ((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL) || (setting->type == SETTING_FLOAT))
+					break;
+
+				set_val = 1;
+
 				int i = va_arg(ap, int);
-				ok = setInt(setting, i);
+				setting->type = SETTING_INT;
+				set_ok = setInt(setting, i);
 				break;
 			}
 
 			case SETTING_BOOL:
 			{
+				if ((setting->type == SETTING_BOOL) || (setting->type == SETTING_INT))
+					break;
+
+				set_val = 1;
+
 				int i = va_arg(ap, int);
-				ok = setBool(setting, i);
+				setting->type = SETTING_BOOL;
+				set_ok = setBool(setting, i);
 				break;
 			}
 
 			case SETTING_FLOAT:
 			{
+				if ((setting->type == SETTING_FLOAT) || (setting->type == SETTING_INT))
+					break;
+
+				set_val = 1;
+
 				double f = va_arg(ap, double);
-				ok = setFloat(setting, f);
+				setting->type = SETTING_FLOAT;
+				set_ok = setFloat(setting, f);
 				break;
 			}
 
 			case SETTING_IP_ADDR:
 			{
+				if ((setting->type == SETTING_IP_ADDR) || (setting->type == SETTING_STRING))
+					break;
+
+				set_val = 1;
+
 				struct in_addr * ip = va_arg(ap, struct in_addr*);
-				ok = setIP(setting, ip);
+				setting->type = SETTING_IP_ADDR;
+				set_ok = setIP(setting, ip);
 				break;
 			}
 
 			default:
 			case SETTING_EMPTY:
 			{
-				DEBUGASSERT(0);
+				assert(0);
+				set_val = 1;
+				set_ok = 0;
 				break;
 			}
 		}
 
 		va_end(ap);
 
-		if (ok)
+		if (set_val)
 		{
-			hash = hashCalc();
-			save();
-		}
-		else
-		{
-			memset(setting, 0, sizeof(Setting_t));
-			setting = NULL;
+			if (set_ok)
+			{
+				hash = hashCalc();
+				save();
+			}
+			else
+			{
+				memset(setting, 0, sizeof(Setting_t));
+				setting = NULL;
+			}
 		}
 	}
 
+end:
 	pthread_mutex_unlock(&mtx);
 
 	return (setting != NULL);
@@ -389,7 +430,7 @@ int Settings_get(char * key, int type, ...)
 
 		case SETTING_EMPTY:
 		{
-			DEBUGASSERT(0);
+			assert(0);
 			break;
 		}
 	}
@@ -455,7 +496,7 @@ int Settings_set(char * key, int type, ...)
 
 		case SETTING_EMPTY:
 		{
-			DEBUGASSERT(0);
+			assert(0);
 			break;
 		}
 	}
@@ -498,11 +539,11 @@ int Settings_iterate(int idx, Setting_t * setting)
 
 int sanityCheck(char * str)
 {
-#ifdef CONFIG_DEBUG_ASSERTIONS
-	DEBUGASSERT(strchr(str, '=') == NULL);
-	DEBUGASSERT(strchr(str, ';') == NULL);
-	DEBUGASSERT(strchr(str, '\n') == NULL);
-	DEBUGASSERT(strchr(str, '\r') == NULL);
+#ifndef NDEBUG
+	assert(strchr(str, '=') == NULL);
+	assert(strchr(str, ';') == NULL);
+	assert(strchr(str, '\n') == NULL);
+	assert(strchr(str, '\r') == NULL);
 #else
 	if (strchr(str, '=') != NULL) return 0;
 	if (strchr(str, ';') != NULL) return 0;
@@ -534,15 +575,15 @@ Setting_t * getSetting(char * key)
 
 size_t getString(Setting_t * setting, char * buffer, size_t size)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_STRING) || (setting->type == SETTING_IP_ADDR));
+	assert(setting);
+	assert((setting->type == SETTING_STRING) || (setting->type == SETTING_IP_ADDR));
 
 	if (setting->type == SETTING_STRING)
 	{
 		const char * s = setting->s;
 		size_t len = strlen(s);
 
-		DEBUGASSERT(len < size);
+		assert(len < size);
 		if (len >= size)
 			return 0;
 
@@ -553,7 +594,7 @@ size_t getString(Setting_t * setting, char * buffer, size_t size)
 	}
 	else if (setting->type == SETTING_IP_ADDR)
 	{
-		DEBUGASSERT(INET_ADDRSTRLEN < size);
+		assert(INET_ADDRSTRLEN < size);
 
 		inet_ntop(AF_INET, &setting->ip, buffer, size);
 		buffer[size - 1] = '\0';
@@ -566,10 +607,10 @@ size_t getString(Setting_t * setting, char * buffer, size_t size)
 
 int setString(Setting_t * setting, char * str)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_STRING) || (setting->type == SETTING_IP_ADDR));
+	assert(setting);
+	assert((setting->type == SETTING_STRING) || (setting->type == SETTING_IP_ADDR));
 
-	ASSERT(strlen(str) < CONFIG_SETTINGS_VALUE_SIZE);
+	assert(strlen(str) < CONFIG_SETTINGS_VALUE_SIZE);
 	if (strlen(str) >= CONFIG_SETTINGS_VALUE_SIZE)
 		return 0;
 
@@ -585,8 +626,8 @@ int setString(Setting_t * setting, char * str)
 
 int getInt(Setting_t * setting, int * i)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL) || (setting->type == SETTING_FLOAT));
+	assert(setting);
+	assert((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL) || (setting->type == SETTING_FLOAT));
 
 	if (setting->type == SETTING_INT)
 		*i = setting->i;
@@ -602,8 +643,8 @@ int getInt(Setting_t * setting, int * i)
 
 int setInt(Setting_t * setting, int i)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL) || (setting->type == SETTING_FLOAT));
+	assert(setting);
+	assert((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL) || (setting->type == SETTING_FLOAT));
 
 	setting->type = SETTING_INT;
 	setting->i = i;
@@ -613,8 +654,8 @@ int setInt(Setting_t * setting, int i)
 
 int getBool(Setting_t * setting, int * i)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_BOOL) || (setting->type == SETTING_INT));
+	assert(setting);
+	assert((setting->type == SETTING_BOOL) || (setting->type == SETTING_INT));
 
 	if ((setting->type == SETTING_INT) || (setting->type == SETTING_BOOL))
 		*i = !!setting->i;
@@ -626,8 +667,8 @@ int getBool(Setting_t * setting, int * i)
 
 int setBool(Setting_t * setting, int i)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_BOOL) || (setting->type == SETTING_INT));
+	assert(setting);
+	assert((setting->type == SETTING_BOOL) || (setting->type == SETTING_INT));
 
 	setting->type = SETTING_BOOL;
 	setting->i = !!i;
@@ -637,8 +678,8 @@ int setBool(Setting_t * setting, int i)
 
 int getFloat(Setting_t * setting, double * f)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_FLOAT) || (setting->type == SETTING_INT));
+	assert(setting);
+	assert((setting->type == SETTING_FLOAT) || (setting->type == SETTING_INT));
 
 	if (setting->type == SETTING_FLOAT)
 		*f = setting->f;
@@ -652,8 +693,8 @@ int getFloat(Setting_t * setting, double * f)
 
 int setFloat(Setting_t * setting, double f)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_FLOAT) || (setting->type == SETTING_INT));
+	assert(setting);
+	assert((setting->type == SETTING_FLOAT) || (setting->type == SETTING_INT));
 
 	setting->type = SETTING_FLOAT;
 	setting->f = f;
@@ -663,8 +704,8 @@ int setFloat(Setting_t * setting, double f)
 
 int getIP(Setting_t * setting, struct in_addr * ip)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_IP_ADDR) || (setting->type == SETTING_STRING));
+	assert(setting);
+	assert((setting->type == SETTING_IP_ADDR) || (setting->type == SETTING_STRING));
 
 	if (setting->type == SETTING_IP_ADDR)
 	{
@@ -681,8 +722,8 @@ int getIP(Setting_t * setting, struct in_addr * ip)
 
 int setIP(Setting_t * setting, struct in_addr * ip)
 {
-	DEBUGASSERT(setting);
-	DEBUGASSERT((setting->type == SETTING_IP_ADDR) || (setting->type == SETTING_STRING));
+	assert(setting);
+	assert((setting->type == SETTING_IP_ADDR) || (setting->type == SETTING_STRING));
 
 	setting->type = SETTING_IP_ADDR;
 	memcpy(&setting->ip, ip, sizeof(struct in_addr));
